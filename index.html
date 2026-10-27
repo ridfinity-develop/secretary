@@ -46,6 +46,29 @@
       padding: 0;
     }
 
+    /* หน้าจอโหลดข้อมูลก่อนเปิดฟอร์ม */
+    #loading-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg-gradient);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      color: #ffffff;
+      gap: 16px;
+    }
+
+    .main-spinner {
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      border-top: 4px solid #ffffff;
+      width: 45px;
+      height: 45px;
+      animation: spin 0.8s linear infinite;
+    }
+
     .card {
       background: var(--card-bg);
       width: 100%;
@@ -53,8 +76,8 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      /* ขยายพื้นที่ด้านข้าง (Padding) ให้กว้างเต็มจอมากยิ่งขึ้น */
       padding: 24px 14px;
+      display: none; /* ซ่อนไว้ก่อนจนกว่าจะโหลดข้อมูลเสร็จ */
     }
 
     .form-container {
@@ -63,8 +86,8 @@
 
     .header {
       text-align: center;
-      margin-bottom: 24px;
-      padding-top: 10px;
+      margin-bottom: 20px;
+      padding-top: 5px;
     }
 
     .badge {
@@ -86,7 +109,7 @@
     }
 
     .form-group {
-      margin-bottom: 22px;
+      margin-bottom: 18px;
       position: relative;
     }
 
@@ -104,7 +127,6 @@
       color: var(--primary-color);
     }
 
-    /* ขยายความกว้างกล่องเลือกรายชื่อให้เต็มจอและสูงขึ้นเพื่อความสบายตา */
     .custom-select-box {
       width: 100%;
       background: #f8fafc;
@@ -129,7 +151,6 @@
       box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.15);
     }
 
-    /* ปรับแต่งกล่องรายการเมนูยืดออกกว้างสุดขอบจอ */
     .dropdown-list {
       position: absolute;
       top: calc(100% + 6px);
@@ -139,7 +160,7 @@
       border: 1.5px solid var(--border-color);
       border-radius: 12px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
-      max-height: 260px;
+      max-height: 220px;
       overflow-y: auto;
       display: none;
       z-index: 100;
@@ -169,7 +190,7 @@
 
     textarea {
       width: 100%;
-      height: 150px;
+      height: 110px;
       background: #f8fafc;
       border: 1.5px solid var(--border-color);
       border-radius: 12px;
@@ -188,13 +209,60 @@
       box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.15);
     }
 
+    /* กรอบคำสั่งใช้บ่อย */
+    .quick-command-box {
+      background: #f8fafc;
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 8px;
+    }
+
+    .quick-command-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quick-btn-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+
+    .quick-btn {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-family: 'Kanit', sans-serif;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .quick-btn:active {
+      background: var(--primary-color);
+      color: #ffffff;
+      border-color: var(--primary-color);
+      transform: scale(0.96);
+    }
+
     .btn-submit {
       width: 100%;
       background: var(--primary-color);
       color: #ffffff;
       border: none;
       border-radius: 12px;
-      padding: 16px;
+      padding: 15px;
       font-size: 1.05rem;
       font-weight: 600;
       cursor: pointer;
@@ -204,8 +272,8 @@
       gap: 10px;
       transition: all 0.2s ease;
       box-shadow: 0 4px 12px rgba(6, 199, 85, 0.3);
-      margin-top: 10px;
-      margin-bottom: 10px;
+      margin-top: 8px;
+      margin-bottom: 5px;
     }
 
     .btn-submit:active {
@@ -311,7 +379,13 @@
 </head>
 <body>
 
-  <div class="card">
+  <!-- หน้าจอโหลดข้อมูลตอนเปิดฟอร์ม -->
+  <div id="loading-screen">
+    <div class="main-spinner"></div>
+    <div style="font-weight: 500; font-size: 1rem;">กำลังโหลดข้อมูล...</div>
+  </div>
+
+  <div class="card" id="main-card">
     <div class="form-container">
       <div class="header">
         <span class="badge">// RiD FINITY AI OFFICE //</span>
@@ -321,20 +395,25 @@
       <div class="form-group">
         <label for="employee"><i class="fa-solid fa-user-gear"></i> มอบหมายงานให้</label>
         
-        <!-- Custom Dropdown Container -->
         <div class="custom-select-box" id="select-box" onclick="toggleDropdown()">
-          <span id="selected-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">กำลังโหลดรายชื่อพนักงาน...</span>
+          <span id="selected-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เลือกพนักงาน</span>
           <i class="fa-solid fa-chevron-down" id="dropdown-icon" style="color: var(--text-muted); font-size: 0.85rem; transition: transform 0.2s;"></i>
         </div>
         
-        <div class="dropdown-list" id="dropdown-list">
-          <!-- รายชื่อจะถูกเติมเข้ามาตรงนี้ด้วย JavaScript -->
-        </div>
+        <div class="dropdown-list" id="dropdown-list"></div>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom: 12px;">
         <label for="command"><i class="fa-solid fa-terminal"></i> ให้ทำตามคำสั่งนี้</label>
         <textarea id="command" placeholder="พิมพ์รายละเอียดคำสั่งงานที่นี่..."></textarea>
+        
+        <!-- กรอบคำสั่งใช้บ่อย -->
+        <div class="quick-command-box">
+          <div class="quick-command-title"><i class="fa-solid fa-bolt" style="color: var(--warning-color);"></i> คำสั่งใช้บ่อย</div>
+          <div class="quick-btn-container" id="quick-btn-container">
+            <!-- ปุ่มคำสั่งใช้บ่อยจะถูกสร้างอัตโนมัติจาก Google Sheet -->
+          </div>
+        </div>
       </div>
     </div>
 
@@ -362,8 +441,8 @@
 
   <script>
     // Config: นำค่าของคุณมาวางตรงนี้
-    const MY_LIFF_ID = "2012248473-7PwD4Fab"; // LIFF ID จาก LINE Login Channel
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzywfePqO206gfRe1ginXBKu4Mb6AeVQoaQh41jN0Q3I5XWGdR4RYNPlzqbS7IzzDGv/exec"; // Web App URL จาก Google Apps Script
+    const MY_LIFF_ID = "2012248473-7PwD4Fab"; 
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzywfePqO206gfRe1ginXBKu4Mb6AeVQoaQh41jN0Q3I5XWGdR4RYNPlzqbS7IzzDGv/exec"; 
 
     let selectedEmployeeValue = "";
 
@@ -377,8 +456,8 @@
         })
         .catch(err => console.error("LIFF Init Error:", err));
 
-      // 2. Fetch Employee names from GAS API
-      fetchEmployeeNames();
+      // 2. โหลดข้อมูลทั้งหมดจาก Google Sheet ก่อนแสดงฟอร์มจริง
+      loadAppData();
 
       // ปิด Dropdown เมื่อคลิกพื้นที่นอกกล่อง
       document.addEventListener("click", function(e) {
@@ -387,6 +466,64 @@
         }
       });
     };
+
+    function loadAppData() {
+      fetch(GAS_API_URL)
+        .then(response => response.json())
+        .then(data => {
+          // เติมรายชื่อพนักงาน
+          const listContainer = document.getElementById("dropdown-list");
+          const selectedText = document.getElementById("selected-text");
+          listContainer.innerHTML = "";
+          
+          if (data.employees && data.employees.length > 0) {
+            selectedEmployeeValue = data.employees[0];
+            selectedText.textContent = selectedEmployeeValue;
+
+            data.employees.forEach((name, index) => {
+              const item = document.createElement("div");
+              item.className = "dropdown-item" + (index === 0 ? " selected" : "");
+              item.textContent = name;
+              item.onclick = function() {
+                selectedEmployeeValue = name;
+                selectedText.textContent = name;
+                document.querySelectorAll(".dropdown-item").forEach(el => el.classList.remove("selected"));
+                item.classList.add("selected");
+                closeDropdown();
+              };
+              listContainer.appendChild(item);
+            });
+          } else {
+            selectedText.textContent = "-- ไม่พบข้อมูลพนักงาน --";
+          }
+
+          // เติมปุ่มคำสั่งใช้บ่อย
+          const quickContainer = document.getElementById("quick-btn-container");
+          quickContainer.innerHTML = "";
+          if (data.quickCommands && data.quickCommands.length > 0) {
+            data.quickCommands.forEach(item => {
+              const btn = document.createElement("button");
+              btn.className = "quick-btn";
+              btn.textContent = item.name;
+              btn.onclick = function() {
+                // นำคำสั่งไปใส่ใน textarea ทันทีโดยยังไม่ส่ง
+                document.getElementById("command").value = item.command;
+              };
+              quickContainer.appendChild(btn);
+            });
+          } else {
+            quickContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">ไม่มีคำสั่งใช้บ่อย</span>';
+          }
+
+          // ซ่อนหน้าจอโหลด แล้วแสดงฟอร์มจริงขึ้นมาพร้อมใช้งานทันที
+          document.getElementById("loading-screen").style.display = "none";
+          document.getElementById("main-card").style.display = "flex";
+        })
+        .catch(err => {
+          console.error("Fetch Error:", err);
+          document.getElementById("loading-screen").innerHTML = "<div style='color:#ef4444; font-weight:500;'>โหลดข้อมูลล้มเหลว กรุณาปิดแล้วลองใหม่อีกครั้ง</div>";
+        });
+    }
 
     function toggleDropdown() {
       const list = document.getElementById("dropdown-list");
@@ -402,46 +539,6 @@
     function closeDropdown() {
       document.getElementById("dropdown-list").style.display = "none";
       document.getElementById("dropdown-icon").style.transform = "rotate(0deg)";
-    }
-
-    function fetchEmployeeNames() {
-      fetch(GAS_API_URL)
-        .then(response => response.json())
-        .then(data => {
-          const listContainer = document.getElementById("dropdown-list");
-          const selectedText = document.getElementById("selected-text");
-          listContainer.innerHTML = "";
-          
-          if (!data.employees || data.employees.length === 0) {
-            selectedText.textContent = "-- ไม่พบข้อมูลพนักงาน --";
-            return;
-          }
-
-          // เลือกชื่อแรกเป็นค่าเริ่มต้น
-          selectedEmployeeValue = data.employees[0];
-          selectedText.textContent = selectedEmployeeValue;
-
-          data.employees.forEach((name, index) => {
-            const item = document.createElement("div");
-            item.className = "dropdown-item" + (index === 0 ? " selected" : "");
-            item.textContent = name;
-            item.onclick = function() {
-              selectedEmployeeValue = name;
-              selectedText.textContent = name;
-              
-              // อัปเดตสถานะเลือก
-              document.querySelectorAll(".dropdown-item").forEach(el => el.classList.remove("selected"));
-              item.classList.add("selected");
-              
-              closeDropdown();
-            };
-            listContainer.appendChild(item);
-          });
-        })
-        .catch(err => {
-          console.error("Fetch Error:", err);
-          document.getElementById("selected-text").textContent = "-- โหลดข้อมูลล้มเหลว --";
-        });
     }
 
     function submitForm() {
